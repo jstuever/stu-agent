@@ -14,6 +14,7 @@ GIT_REPO_DIR="$PWD/$GIT_REPO"
 GIT_FORK_URL="${GIT_FORK_URL:-git@github.com:${USER:-$(id -un)}/$GIT_REPO.git}"
 GIT_UPSTREAM_URL="${GIT_UPSTREAM_URL:-https://github.com/jstuever/$GIT_REPO.git}"
 GIT_UPSTREAM_BRANCH="${GIT_UPSTREAM_BRANCH:-main}"
+LOGS_DIR="$PWD/logs"
 
 usage() {
 	echo "Usage: $(basename "$0") [setup|implement|review]" >&2
@@ -83,7 +84,7 @@ git-stash() {
 
 implement-spec() {
 	local ts; ts=$(date +%Y%m%d%H%M%S)
-	local log_file; log_file="$PWD/logs/$ts-implement-spec.log"
+	local log_file; log_file="$LOGS_DIR/$ts-implement-spec.log"
 
 	cd "$GIT_REPO_DIR" || die "Cannot cd to $GIT_REPO_DIR"
 
@@ -103,7 +104,7 @@ implement-spec() {
 
 pre-commit-review() {
 	local ts; ts=$(date +%Y%m%d%H%M%S)
-	local log_file; log_file="$PWD/logs/$ts-pre-commit-review.log"
+	local log_file; log_file="$LOGS_DIR/$ts-pre-commit-review.log"
 
 	cd "$GIT_REPO_DIR" || die "Cannot cd to $GIT_REPO_DIR"
 
