@@ -16,6 +16,9 @@ GIT_UPSTREAM_URL="${GIT_UPSTREAM_URL:-https://github.com/jstuever/$GIT_REPO.git}
 GIT_UPSTREAM_BRANCH="${GIT_UPSTREAM_BRANCH:-main}"
 LOGS_DIR="$PWD/logs"
 
+TIME_CMD=$(which time)
+TIME_FORMAT="\n{\"time\":{\"real_time_seconds\":%e}}"
+
 usage() {
 	echo "Usage: $(basename "$0") [setup|implement|review]" >&2
 	exit 1
@@ -85,6 +88,10 @@ git-stash() {
 implement-spec() {
 	local ts; ts=$(date +%Y%m%d%H%M%S)
 	local log_file; log_file="$LOGS_DIR/$ts-implement-spec.log"
+	local time_cmd; time_cmd=""
+	if [[ -n "${TIME_CMD}" ]]; then
+		time_cmd="${TIME_CMD} -f ${TIME_FORMAT} -a -o ${log_file}"
+	fi
 
 	cd "$GIT_REPO_DIR" || die "Cannot cd to $GIT_REPO_DIR"
 
@@ -92,7 +99,7 @@ implement-spec() {
 		die ".claude/spec.md not found"
 	fi
 
-	$CLAUDE_CONTAINER_CMD \
+	$time_cmd $CLAUDE_CONTAINER_CMD \
 		--model "$CLAUDE_MODEL" \
 		--permission-mode "$CLAUDE_PERMISSION_MODE" \
 		--verbose --output-format stream-json \
@@ -105,10 +112,14 @@ implement-spec() {
 pre-commit-review() {
 	local ts; ts=$(date +%Y%m%d%H%M%S)
 	local log_file; log_file="$LOGS_DIR/$ts-pre-commit-review.log"
+	local time_cmd; time_cmd=""
+	if [[ -n "${TIME_CMD}" ]]; then
+		time_cmd="${TIME_CMD} -f ${TIME_FORMAT} -a -o ${log_file}"
+	fi
 
 	cd "$GIT_REPO_DIR" || die "Cannot cd to $GIT_REPO_DIR"
 
-	$CLAUDE_CONTAINER_CMD \
+	$time_cmd $CLAUDE_CONTAINER_CMD \
 		--model "$CLAUDE_MODEL" \
 		--permission-mode "$CLAUDE_PERMISSION_MODE" \
 		--verbose --output-format stream-json \
