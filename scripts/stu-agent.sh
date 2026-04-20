@@ -6,6 +6,11 @@ if [ -f "${STU_AGENT_DIR}/config" ]; then
 	source ${STU_AGENT_DIR}/config
 fi
 
+# Source local config file if it exists
+if [ -f "$PWD/config" ]; then
+	source $PWD/config
+fi
+
 CLAUDE_MODEL="${CLAUDE_MODEL:-claude-sonnet-4-6}"
 CLAUDE_CONTAINER_CMD="${CLAUDE_CONTAINER_CMD:-claude-container}"
 CLAUDE_PERMISSION_MODE="${CLAUDE_PERMISSION_MODE:-auto}"
