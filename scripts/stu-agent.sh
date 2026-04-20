@@ -16,6 +16,8 @@ GIT_UPSTREAM_URL="${GIT_UPSTREAM_URL:-https://github.com/jstuever/$GIT_REPO.git}
 GIT_UPSTREAM_BRANCH="${GIT_UPSTREAM_BRANCH:-main}"
 LOGS_DIR="$PWD/logs"
 
+export CLAUDE_CONTAINER_GO_CACHE="${PWD}/go-cache"
+
 TIME_CMD=$(which time)
 TIME_FORMAT="\n{\"time\":{\"real_time_seconds\":%e}}"
 
@@ -35,6 +37,11 @@ setup() {
 	# Create logs directory
 	if [ ! -d "logs" ]; then
 		mkdir -p "logs" || die "Unable to create directory: logs"
+	fi
+
+	# Create go-cache directory
+	if [ ! -d "go-cache" ]; then
+		mkdir -p "go-cache" || die "Unable to create directory: go-cache"
 	fi
 
 	# Clone the repository if not already cloned

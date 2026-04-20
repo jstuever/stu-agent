@@ -11,6 +11,11 @@ CLAUDE_PROJECT_ID="${CLAUDE_PROJECT_ID:-}"
 CLAUDE_REGION="${CLAUDE_REGION:-}"
 PULL_SECRET="${PULL_SECRET:-$STU_AGENT_DIR/pull-secret.json}"
 
+GO_CACHE_ARG=""
+if [[ -n "$CLAUDE_CONTAINER_GO_CACHE" ]]; then
+	GO_CACHE_ARG=" --volume $CLAUDE_CONTAINER_GO_CACHE:/go/.cache:z"
+fi
+
 export CLOUDSDK_CONFIG="$STU_AGENT_DIR/claude.config/gcloud"
 
 usage() {
@@ -77,4 +82,5 @@ podman run -it --rm \
 	-v $PWD:/workspace:z \
 	-w /workspace \
 	--userns=keep-id \
+	$GO_CACHE_ARG \
 	ai-helpers "${@:-claude}"
