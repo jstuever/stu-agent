@@ -19,4 +19,7 @@ if [ -d ~/bin ]; then
 	if [ ! -f ~/bin/claude-container ]; then
 		ln -s ~/stu-agent/src/stu-agent/scripts/claude-container.sh ~/bin/claude-container
 	fi
+	if [ ! -f ~/bin/aggregate_claude_usage.sh ]; then
+		ln -s ~/stu-agent/src/stu-agent/scripts/aggregate_claude_usage.sh ~/bin/aggregate_claude_usage
+	fi
 fi
