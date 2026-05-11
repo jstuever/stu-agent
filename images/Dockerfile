@@ -1,0 +1,76 @@
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.25-openshift-4.22
+
+# Install Python 3 and development tools
+RUN dnf install -y \
+    python3 \
+    python3-pip \
+    python3-devel \
+    && dnf clean all
+
+# Install common Python tools
+RUN pip3 install --no-cache-dir \
+    pytest \
+    requests \
+    pyyaml
+
+# Install GitHub CLI
+RUN dnf install -y 'dnf-command(config-manager)' \
+    && dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo \
+    && dnf install -y gh \
+    && dnf clean all
+
+# Install PCP tools
+RUN dnf install -y \
+    pcp \
+    pcp-export-pcp2json \
+    && dnf clean all
+
+# Create agent user with root group for OpenShift compatibility
+RUN useradd -m -u 1000 -g 0 -s /bin/bash agent
+
+# Copy ai-helpers repository to /opt/ai-helpers
+COPY ./ai-helpers /opt/ai-helpers
+RUN chown -R agent:root /opt/ai-helpers
+
+# Create Claude configuration directory and copy settings
+#   Note: We pre-configure known_marketplaces.json because extraKnownMarketplaces doesn't seem to work in non-interactive mode.
+RUN mkdir -p /home/agent/.claude/plugins
+COPY ai-helpers/images/claude-settings.json /home/agent/.claude/settings.json
+COPY ai-helpers/images/known_marketplaces.json /home/agent/.claude/plugins/known_marketplaces.json
+
+# Create OpenCode configuration directory and copy settings
+RUN mkdir -p /home/agent/.config/opencode
+
+# Ensure agent owns home
+RUN chown -R agent:root /home/agent
+
+# Create workspace directory
+RUN mkdir -p /workspace && chown -R agent:root /workspace
+WORKDIR /workspace
+
+# Switch to agent user
+USER agent
+
+# Install Claude Code CLI using the official installation script
+RUN curl -fsSL https://claude.ai/install.sh | bash
+
+# Install OpenCode using the official installation script
+RUN curl -fsSL https://opencode.ai/install | VERSION= bash
+
+# Symlink opencode to ~/.local/bin
+RUN ln -sf /home/agent/.opencode/bin/opencode /home/agent/.local/bin/opencode
+
+# In CI, OpenShift uses a random UID, but in the root group
+RUN chmod -R g+rwx /home/agent && \
+  chmod -R g+rwx /opt/ai-helpers && \
+  chmod -R g+rwx /workspace
+
+# Ensure ~/.local/bin is in PATH for the entrypoint
+ENV PATH="/home/agent/.local/bin:${PATH}"
+ENV CLAUDE_CONFIG_DIR="/home/agent/.claude"
+
+# Set Claude Code as the default command
+ENTRYPOINT ["claude"]
+
+# Default to showing help
+CMD ["--help"]
