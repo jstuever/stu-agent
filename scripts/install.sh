@@ -1,25 +1,21 @@
 #!/bin/bash
 
+if [ ! -d ~/stu-agent ]; then
+	mkdir -p ~/stu-agent
+fi
+
 if [ ! -d ~/stu-agent/src ]; then
-	mkdir -p ~/stu-agent/src
-fi
-
-if [ ! -d ~/stu-agent/src/stu-agent ]; then
-	git clone https://github.com/jstuever/stu-agent.git ~/stu-agent/src/stu-agent
-fi
-
-if [ ! -d ~/stu-agent/src/ai-helpers ]; then
-	git clone https://github.com/openshift-eng/ai-helpers.git ~/stu-agent/src/ai-helpers
+	git clone https://github.com/jstuever/stu-agent.git ~/stu-agent/src
 fi
 
 if [ -d ~/bin ]; then
 	if [ ! -f ~/bin/stu-agent ]; then
-		ln -s ~/stu-agent/src/stu-agent/scripts/stu-agent.sh ~/bin/stu-agent
+		ln -s ~/stu-agent/src/scripts/stu-agent.sh ~/bin/stu-agent
 	fi
-	if [ ! -f ~/bin/claude-container ]; then
-		ln -s ~/stu-agent/src/stu-agent/scripts/claude-container.sh ~/bin/claude-container
+	if [ ! -f ~/bin/agent-container ]; then
+		ln -s ~/stu-agent/src/scripts/claude-container.sh ~/bin/agent-container
 	fi
 	if [ ! -f ~/bin/aggregate_claude_usage.sh ]; then
-		ln -s ~/stu-agent/src/stu-agent/scripts/aggregate_claude_usage.sh ~/bin/aggregate_claude_usage
+		ln -s ~/stu-agent/src/scripts/aggregate_claude_usage.sh ~/bin/aggregate_claude_usage
 	fi
 fi
