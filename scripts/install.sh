@@ -13,7 +13,7 @@ if [ -d ~/bin ]; then
 		ln -s ~/stu-agent/src/scripts/stu-agent.sh ~/bin/stu-agent
 	fi
 	if [ ! -f ~/bin/agent-container ]; then
-		ln -s ~/stu-agent/src/scripts/claude-container.sh ~/bin/agent-container
+		ln -s ~/stu-agent/src/scripts/agent-container.sh ~/bin/agent-container
 	fi
 	if [ ! -f ~/bin/aggregate_claude_usage.sh ]; then
 		ln -s ~/stu-agent/src/scripts/aggregate_claude_usage.sh ~/bin/aggregate_claude_usage
