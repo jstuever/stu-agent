@@ -4,8 +4,8 @@ Agentic workflow proof of concept
 ## Overview
 This repository provides a proof-of-concept agentic workflow that takes a `spec.md` as input and generates code to implement it, leaving changes staged for commit.
 
-- `claude-container.sh`: Builds and runs the Claude CLI in a container, leveraging [openshift-eng/ai-helpers](https://github.com/openshift-eng/ai-helpers). Executing the script without any arguments will provide a Claude CLI interface in the current working directory.
-- `stu-agent.sh`: Sets up and executes the workflow. It prepares the Git repository, implements the supplied spec, and performs local code review and resolution. It creates stashed copies of changes at each step and logs Claude's output.
+- `agent-container.sh`: Builds and runs the agent CLI in a container, leveraging [openshift-eng/ai-helpers](https://github.com/openshift-eng/ai-helpers). Executing the script without any arguments will provide a Claude CLI interface in the current working directory.
+- `stu-agent.sh`: Sets up and executes the workflow. It prepares the Git repository, implements the supplied spec, and performs local code review and resolution. It creates stashed copies of changes at each step and logs the agent's output.
 - `implement-spec.md`: Provides the slash command used by `stu-agent.sh` during implementation.
 
 ## Getting Started
@@ -29,12 +29,12 @@ This repository provides a proof-of-concept agentic workflow that takes a `spec.
    ```
    **Warning:** We currently use `bypassPermissions` for this proof of concept. For production, restrict permissions to acceptable actions only.
 
-3. **Build and set up claude-container**
+3. **Build and set up agent-container**
    ```bash
    agent-container build
    agent-container auth
    ```
-   Note: the auth parameter will generate gcloud authentication resources in `~/stu-agent/claude.config/gcloud/`. It will open the web browser as part of the process. The end result is an application credential that will be passed into the claude-container for use by Claude.
+   Note: the auth parameter will generate gcloud authentication resources in `~/stu-agent/gcloud/`. It will open the web browser as part of the process. The end result is an application credential that will be passed into the agent-container for use by Claude.
 
 4. **Use stu-agent to implement a spec**
    ```bash
