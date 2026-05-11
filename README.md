@@ -19,9 +19,9 @@ This repository provides a proof-of-concept agentic workflow that takes a `spec.
 2. **Create a Configuration**
    ```bash
    cat <<EOF > ~/stu-agent/config
-   CLAUDE_PERMISSION_MODE="${CLAUDE_PERMISSION_MODE:-bypassPermissions}"
-   CLAUDE_PROJECT_ID="${CLAUDE_PROJECT_ID:-<YOUR_CLAUDE_PROJECT_ID>}"
-   CLAUDE_REGION="${CLAUDE_REGION:-<YOUR_CLAUDE_REGION>}"
+   AGENT_PERMISSION_MODE="${AGENT_PERMISSION_MODE:-bypassPermissions}"
+   VORTEX_PROJECT_ID="${VORTEX_PROJECT_ID:-<YOUR_CLAUDE_PROJECT_ID>}"
+   VORTEX_REGION="${VORTEX_REGION:-<YOUR_CLAUDE_REGION>}"
 
    GIT_REPO="${GIT_REPO:-<YOUR_GIT_REPO>}"
    GIT_UPSTREAM_URL="${GIT_UPSTREAM_URL:-<YOUR_UPSTREAM_GIT_REPO>}"
@@ -31,8 +31,8 @@ This repository provides a proof-of-concept agentic workflow that takes a `spec.
 
 3. **Build and set up claude-container**
    ```bash
-   claude-container build
-   claude-container auth
+   agent-container build
+   agent-container auth
    ```
    Note: the auth parameter will generate gcloud authentication resources in `~/stu-agent/claude.config/gcloud/`. It will open the web browser as part of the process. The end result is an application credential that will be passed into the claude-container for use by Claude.
 

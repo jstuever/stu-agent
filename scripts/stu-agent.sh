@@ -11,17 +11,23 @@ if [ -f "$PWD/config" ]; then
 	source $PWD/config
 fi
 
-CLAUDE_MODEL="${CLAUDE_MODEL:-claude-sonnet-4-6}"
-CLAUDE_CONTAINER_CMD="${CLAUDE_CONTAINER_CMD:-claude-container}"
-CLAUDE_PERMISSION_MODE="${CLAUDE_PERMISSION_MODE:-auto}"
+STU_AGENT="${STU_AGENT:-claude}"
+AGENT_CONTAINER_CMD="${AGENT_CONTAINER_CMD:-agent-container}"
+AGENT_MODEL="${AGENT_MODEL:-}"
+AGENT_PERMISSION_MODE="${AGENT_PERMISSION_MODE:-auto}"
 GIT_REPO="${GIT_REPO:-stu-agent}"
 GIT_REPO_DIR="$PWD/$GIT_REPO"
-GIT_FORK_URL="${GIT_FORK_URL:-git@github.com:${USER:-$(id -un)}/$GIT_REPO.git}"
+GIT_REPO_URL="${GIT_REPO_URL:-git@github.com:${USER:-$(id -un)}/$GIT_REPO.git}"
 GIT_UPSTREAM_URL="${GIT_UPSTREAM_URL:-https://github.com/jstuever/$GIT_REPO.git}"
 GIT_UPSTREAM_BRANCH="${GIT_UPSTREAM_BRANCH:-main}"
 LOGS_DIR="$PWD/logs"
 
-export CLAUDE_CONTAINER_GO_CACHE="${PWD}/go-cache"
+ARG_AGENT_MODEL=""
+if [[ -n "${AGENT_MODEL}" ]]; then
+	ARG_AGENT_MODEL="--model $AGENT_MODEL"
+fi
+
+export AGENT_CONTAINER_GO_CACHE="${PWD}/go-cache"
 
 TIME_CMD=$(which time)
 TIME_FORMAT="\n{\"time\":{\"real_time_seconds\":%e}}"
@@ -51,7 +57,7 @@ setup() {
 
 	# Clone the repository if not already cloned
 	if [[ ! -d "$GIT_REPO_DIR" ]]; then
-		git clone "$GIT_FORK_URL" "$GIT_REPO_DIR" || die "git clone failed"
+		git clone "$GIT_REPO_URL" "$GIT_REPO_DIR" || die "git clone failed"
 	fi
 
 	cd "$GIT_REPO_DIR" || die "Cannot cd to $GIT_REPO_DIR"
@@ -82,7 +88,18 @@ setup() {
 		mkdir -p ".claude/commands" || die "failed to mkdir .claude/commands"
 	fi
 
-	cp $STU_AGENT_DIR/src/stu-agent/commands/* .claude/commands || die "unable to copy commands"
+	cp $STU_AGENT_DIR/src/commands/* .claude/commands || die "unable to copy commands"
+
+	# Set up opencode configuration
+	if ! grep -qxF ".opencode/" ".git/info/exclude" 2>/dev/null; then
+		echo ".opencode/" >> ".git/info/exclude"
+	fi
+
+	if [ ! -d ".opencode/commands" ]; then
+		mkdir -p ".opencode/commands" || die "failed to mkdir .opencode/commands"
+	fi
+
+	cp $STU_AGENT_DIR/src/commands/* .opencode/commands || die "unable to copy commands"
 
 	# Copy the spec.md if it exists
 	if [ -f ../spec.md ]; then
@@ -111,12 +128,24 @@ implement-spec() {
 		die ".claude/spec.md not found"
 	fi
 
-	$time_cmd $CLAUDE_CONTAINER_CMD \
-		--model "$CLAUDE_MODEL" \
-		--permission-mode "$CLAUDE_PERMISSION_MODE" \
-		--verbose --output-format stream-json \
-		--print "/implement-spec @.claude/spec.md" \
-	| tee -a "$log_file"
+	case "${STU_AGENT:-}" in
+		"claude")
+			$time_cmd $AGENT_CONTAINER_CMD \
+				$ARG_AGENT_MODEL \
+				--permission-mode "$AGENT_PERMISSION_MODE" \
+				--verbose --output-format stream-json \
+				--print "/implement-spec @.claude/spec.md" \
+			| tee -a "$log_file"
+		;;
+		"opencode")
+			$time_cmd $AGENT_CONTAINER_CMD run \
+				$ARG_AGENT_MODEL \
+				--dangerously-skip-permissions \
+				--format json \
+				--command "implement-spec" "@.opencode/spec.md" \
+			| tee -a "$log_file"
+		;;
+		esac
 
 	git-stash "$ts-implement-spec"
 }
@@ -131,13 +160,25 @@ pre-commit-review() {
 
 	cd "$GIT_REPO_DIR" || die "Cannot cd to $GIT_REPO_DIR"
 
-	$time_cmd $CLAUDE_CONTAINER_CMD \
-		--model "$CLAUDE_MODEL" \
-		--permission-mode "$CLAUDE_PERMISSION_MODE" \
-		--verbose --output-format stream-json \
-		--plugin-dir "/opt/ai-helpers/plugins/code-review" \
-		--print "/code-review:pre-commit-review --resolve" \
-	| tee -a "$log_file"
+	case "${STU_AGENT:-}" in
+		"claude")
+			$time_cmd $AGENT_CONTAINER_CMD \
+				$ARG_AGENT_MODEL \
+				--permission-mode "$AGENT_PERMISSION_MODE" \
+				--verbose --output-format stream-json \
+				--plugin-dir "/opt/ai-helpers/plugins/code-review" \
+				--print "/code-review:pre-commit-review --resolve" \
+			| tee -a "$log_file"
+		;;
+		"opencode")
+			$time_cmd $AGENT_CONTAINER_CMD \
+				$ARG_AGENT_MODEL \
+				--dangerously-skip-permissions \
+				--format json \
+				--command "pre-commit-review" "--resolve" \
+			| tee -a "$log_file"
+		;;
+	esac
 
 	git-stash "$ts-pre-commit-review"
 }
