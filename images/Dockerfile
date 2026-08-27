@@ -53,6 +53,7 @@ USER agent
 
 # Install Claude Code CLI using the official installation script
 RUN curl -fsSL https://claude.ai/install.sh | bash
+RUN rm /home/agent/.claude/backups/.claude.*
 
 # Install OpenCode using the official installation script
 RUN curl -fsSL https://opencode.ai/install | VERSION= bash
