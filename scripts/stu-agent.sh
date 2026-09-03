@@ -104,6 +104,7 @@ setup() {
 	# Copy the spec.md if it exists
 	if [ -f ../spec.md ]; then
 		cp ../spec.md .claude/spec.md || die "failed to copy spec.md"
+		cp ../spec.md .opencode/spec.md || die "failed to copy spec.md"
 	fi
 }
 
@@ -171,11 +172,11 @@ pre-commit-review() {
 			| tee -a "$log_file"
 		;;
 		"opencode")
-			$time_cmd $AGENT_CONTAINER_CMD \
+			$time_cmd $AGENT_CONTAINER_CMD run \
 				$ARG_AGENT_MODEL \
 				--dangerously-skip-permissions \
 				--format json \
-				--command "pre-commit-review" "--resolve" \
+				--command -- "pre-commit-review --resolve" \
 			| tee -a "$log_file"
 		;;
 	esac
