@@ -103,6 +103,6 @@ podman run -it --rm \
 	-v $STU_AGENT_DIR/gcloud:/home/agent/.config/gcloud:ro,z \
 	-v $PWD:/workspace:z \
 	-w /workspace \
-	--userns=keep-id \
+	--userns=keep-id:uid=1000,gid=1000 \
 	--entrypoint="$STU_AGENT" \
 	stu-agent "${@:-$AGENT_DEFAULT_ARGS}"
