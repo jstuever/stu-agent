@@ -143,7 +143,7 @@ implement-spec() {
 				$ARG_AGENT_MODEL \
 				--dangerously-skip-permissions \
 				--format json \
-				--command "implement-spec" "@.opencode/spec.md" \
+				"/implement-spec @.opencode/spec.md" \
 			| tee -a "$log_file"
 		;;
 		esac
@@ -176,7 +176,7 @@ pre-commit-review() {
 				$ARG_AGENT_MODEL \
 				--dangerously-skip-permissions \
 				--format json \
-				--command -- "pre-commit-review --resolve" \
+				"/pre-commit-review --resolve" \
 			| tee -a "$log_file"
 		;;
 	esac
