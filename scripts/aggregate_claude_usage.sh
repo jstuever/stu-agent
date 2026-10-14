@@ -110,6 +110,11 @@ while IFS= read -r line; do
         if [[ -n "$usage_tools" ]]; then
             tool_uses=$((tool_uses + usage_tools))
         fi
+
+        usage_tools=$(echo "$line" | jq -r '.part.tool // empty' 2>/dev/null || true)
+        if [[ -n "$usage_tools" ]]; then
+            tool_uses=$((tool_uses + 1))
+        fi
     fi
 done
 
