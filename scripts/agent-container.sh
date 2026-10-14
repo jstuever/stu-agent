@@ -10,12 +10,16 @@ AI_HELPERS_REPO="${AI_HELPERS:-https://github.com/openshift-eng/ai-helpers.git}"
 PULL_SECRET="${PULL_SECRET:-$STU_AGENT_DIR/pull-secret.json}"
 
 # Configure agent
-STU_AGENT="${STU_AGENT:-claude}"
+STU_AGENT="${STU_AGENT:-opencode}"
+STU_AGENT_PROVIDER="${STU_AGENT_PROVIDER:-vertex}"
 
-# Configure Claude
-VORTEX_PROJECT_ID="${VORTEX_PROJECT_ID:-}"
-VORTEX_REGION="${VORTEX_REGION:-}"
+# Configure Vertex provider
+VERTEX_PROJECT_ID="${VERTEX_PROJECT_ID:-}"
+VERTEX_REGION="${VERTEX_REGION:-}"
 export CLOUDSDK_CONFIG="$STU_AGENT_DIR/gcloud"
+
+# Configure custom provider
+STU_AGENT_PROVIDER_KEY="${STU_AGENT_PROVIDER_KEY:-}"
 
 # Configure Go cache
 GO_CACHE_ARG=""
@@ -29,7 +33,7 @@ usage() {
 
 auth() {
 	# Authenticate to gcloud
-	gcloud init --project "$VORTEX_PROJECT_ID"
+	gcloud init --project "$VERTEX_PROJECT_ID"
 	gcloud auth application-default login
 	gcloud auth application-default set-quota-project cloudability-it-gemini
 }
@@ -67,40 +71,53 @@ if [[ "$PWD" == "$HOME" ]]; then
 	exit 1
 fi
 
-if [ -z "$VORTEX_PROJECT_ID" ]; then
-	echo "You must set VORTEX_PORJECT_ID envornmnet variable"
-	usage
-	exit 1
-fi
+case "${STU_AGENT_PROVIDER}" in
+	"custom")
+	;;
+	"vertex")
+		if [ -z "$VERTEX_PROJECT_ID" ]; then
+			echo "You must set VERTEX_PORJECT_ID envornmnet variable"
+			usage
+			exit 1
+		fi
 
-if [ -z "$VORTEX_REGION" ]; then
-	echo "You must set VORTEX_REGION envornmnet variable"
-	usage
-	exit 1
-fi
-
+		if [ -z "$VERTEX_REGION" ]; then
+			echo "You must set VERTEX_REGION envornmnet variable"
+			usage
+			exit 1
+		fi
+	;;
+	*)
+		echo "Invalid value for STU_AGENT_PROVIDER: ${STU_AGENT_PROVIDER}"
+		exit 1
+	;;
+esac
 
 AGENT_ENV=""
 AGENT_DEFAULT_ARGS=""
-case "${STU_AGENT-}" in
-	"claude")
+case "${STU_AGENT-}/${STU_AGENT_PROVIDER-}" in
+	"claude/vertex")
 		AGENT_ENV=" -e CLAUDE_CODE_USE_VERTEX=1 \
-			    -e CLOUD_ML_REGION=$VORTEX_REGION \
-			    -e ANTHROPIC_VERTEX_PROJECT_ID=$VORTEX_PROJECT_ID \
-			    -e CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1"
+			    -e CLOUD_ML_REGION=$VERTEX_REGION \
+			    -e ANTHROPIC_VERTEX_PROJECT_ID=$VERTEX_PROJECT_ID \
+			    -e CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 \
+			    -v $STU_AGENT_DIR/gcloud:/home/agent/.config/gcloud:ro,z"
 		AGENT_DEFAULT_ARGS="claude"
 	;;
-	"opencode")
+	"opencode/vertex")
 		AGENT_ENV=" -e GOOGLE_APPLICATION_CREDENTIALS=/home/agent/.config/gcloud/application_default_credentials.json \
-			    -e GOOGLE_CLOUD_PROJECT=$VORTEX_PROJECT_ID \
-			    -e VERTEX_LOCATION=$VORTEX_REGION"
+			    -e GOOGLE_CLOUD_PROJECT=$VERTEX_PROJECT_ID \
+			    -e VERTEX_LOCATION=$VERTEX_REGION \
+			    -v $STU_AGENT_DIR/gcloud:/home/agent/.config/gcloud:ro,z"
 	;;
+	"opencode/custom")
+		AGENT_ENV=" -e STU_AGENT_PROVIDER_KEY=$STU_AGENT_PROVIDER_KEY \
+		            -v $STU_AGENT_DIR/opencode-custom:/home/agent/.config/opencode:z "
 esac
 
 podman run -it --rm \
 	$AGENT_ENV \
 	$GO_CACHE_ARG \
-	-v $STU_AGENT_DIR/gcloud:/home/agent/.config/gcloud:ro,z \
 	-v $PWD:/workspace:z \
 	-w /workspace \
 	--userns=keep-id:uid=1000,gid=1000 \
