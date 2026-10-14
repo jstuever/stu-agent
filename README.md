@@ -19,15 +19,16 @@ This repository provides a proof-of-concept agentic workflow that takes a `spec.
 2. **Create a Configuration**
    ```bash
    cat <<EOF > ~/stu-agent/config
-   AGENT_PERMISSION_MODE="${AGENT_PERMISSION_MODE:-bypassPermissions}"
-   VORTEX_PROJECT_ID="${VORTEX_PROJECT_ID:-<YOUR_CLAUDE_PROJECT_ID>}"
-   VORTEX_REGION="${VORTEX_REGION:-<YOUR_CLAUDE_REGION>}"
+
+   STU_AGENT="${STU_AGENT:-opencode"}
+
+   VERTEX_PROJECT_ID="${VERTEX_PROJECT_ID:-<YOUR_VERTEX_PROJECT_ID>}"
+   VERTEX_REGION="${VERTEX_REGION:-<YOUR_VERTEX_REGION>}"
 
    GIT_REPO="${GIT_REPO:-<YOUR_GIT_REPO>}"
    GIT_UPSTREAM_URL="${GIT_UPSTREAM_URL:-<YOUR_UPSTREAM_GIT_REPO>}"
    EOF
    ```
-   **Warning:** We currently use `bypassPermissions` for this proof of concept. For production, restrict permissions to acceptable actions only.
 
 3. **Build and set up agent-container**
    ```bash
